@@ -81,16 +81,47 @@ fn main() {
     )
     .unwrap();
 
-    let mut edges = Edges::new(&gl, &cpu_mesh.indices, &cpu_mesh.positions, 0.002);
+    let obj = tri_mesh::mesh_builder::MeshBuilder::new()
+        .with_obj(String::from(include_str!(
+            "../assets/carbattery/carbattery.obj"
+        )))
+        .build()
+        .unwrap();
+
+    let mut edges = Edges::new(
+        &gl,
+        &obj.indices_buffer(),
+        &obj.positions_buffer_f32(),
+        0.002,
+    );
     edges.diffuse_intensity = 0.8;
     edges.specular_intensity = 0.2;
     edges.specular_power = 5.0;
     edges.color = vec3(0.7, 0.2, 0.2);
 
-    let mut model = cpu_mesh.to_mesh(&gl).unwrap();
+    // let mut model = cpu_mesh.to_mesh(&gl).unwrap();
+    let mut model = Mesh::new(
+        &gl,
+        &obj.indices_buffer(),
+        &obj.positions_buffer_f32(),
+        &obj.normals_buffer_f32(),
+    )
+    .unwrap();
     model.diffuse_intensity = 0.2;
     model.specular_intensity = 0.4;
     model.specular_power = 20.0;
+    model.texture = Some(
+        Texture2D::new_from_bytes(
+            &gl,
+            Interpolation::Linear,
+            Interpolation::Linear,
+            None,
+            Wrapping::ClampToEdge,
+            Wrapping::ClampToEdge,
+            include_bytes!("../assets/carbattery/carbattery_carbatteryShape.bmp"),
+        )
+        .unwrap(),
+    );
 
     let mut plane_mesh = tri_mesh::MeshBuilder::new().plane().build().unwrap();
     plane_mesh.scale(100.0);
